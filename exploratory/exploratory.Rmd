@@ -1,0 +1,204 @@
+---
+title: "Data Exploration for Capstone project"
+author: "Jenny Eriksson"
+date: '2020-06-08'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=F)
+library(wordcloud)
+```
+
+## Introduction
+This report explores the swiftKey dataset and gives some insights about it. The swiftkey dataset consists of text files gathered from twitter, blogs, and new reports in four different languages: english, finish, german and russian. The data set is commonly used to construct models that can predict preceding words. In order to construct such a model, some knowledge is needed about the data set, which this report aims to give. Only the english versions will be considered in this report.
+
+# Session info
+R version 3.6.3 (2020-02-29)  
+Platform: x86_64-w64-mingw32/x64 (64-bit)  
+Running under: Windows 10 x64 (build 17134)
+
+# Load Data and Basic summary
+The data is first processed using the separate function loadData(), that will construct the unigram, bigram and trigram of the three separate sets. The results are written in csv-files that are loaded to this report.
+```{r, cache=TRUE, include=FALSE}
+files<-c("en_US.twitter", "en_US.blogs", "en_US.news")
+ngrams<-3
+freqs=list(rep(data.frame(),9))
+
+for(i in 1:length(files)){
+    for(j in 1:ngrams){
+        data<-read.csv(paste(files[i],j,".csv",sep=""))
+        data<-data[,-data$X]
+        df<-data.frame(word= colnames(data), freq=colSums(data), set=rep(files[i], length(data)))
+        freqs[[ngrams*(i-1)+j]]<-df
+        print(i)
+    }
+}
+```
+
+The dimensions of the three different raw data sets are as follows, for twitter, blogs and news.
+```{r, echo=F, cache=TRUE}
+library(data.table)
+library(knitr)
+filesIn<-c("../Coursera-SwiftKey/final/en_US/en_US.twitter.txt", "../Coursera-SwiftKey/final/en_US/en_US.blogs.txt", "../Coursera-SwiftKey/final/en_US/en_US.news.txt")
+summaryData<- data.frame(lines = c(0,0,0), words=c(0,0,0), avg_words_per_line=c(0,0,0))
+for(i in 1:length(filesIn))
+{
+    
+    con  <- file(filesIn[i], open = "r")
+
+
+while (length(line <- readLines(con, n = 1, warn = FALSE)) > 0)
+    {
+    words <- (strsplit(line, " "))
+    summaryData$words[i] <- summaryData$words[i]+sum(lengths(words))
+    summaryData$lines[i] <- summaryData$lines[i]+1
+
+    } 
+    summaryData$avg_words_per_line[i] <- summaryData$words[i] / summaryData$lines[i]
+close(con)
+}
+rownames(summaryData) <- c("twitter", "blogs", "news")  
+kable(summaryData)
+```
+
+
+
+# Distribution of word counts 
+The distribution looks like below for the three different sets (twitter, blogs, news). We see that the majority of the words only have one occurence.
+
+
+```{r, echo=F}
+library(ggplot2)
+ggplot(data=freqs[[1]], aes(x=freq, linetype="twitter")) + geom_histogram(bins=50, fill = "red", alpha = 0.2) + geom_histogram(data=freqs[[4]], bins=50,fill = "blue", alpha = 0.2, aes(linetype="blogs")) + geom_histogram(data=freqs[[7]], bins=50,fill = "green", alpha = 0.2, aes(linetype="news"))+scale_x_log10()+labs(title="Unigram word count distribution") +  
+        scale_fill_manual(values = c("red" = "red"
+                               , "blue" = "blue"
+                               , "green" = "green")
+                    , name = "V/S"
+                    , labels = c("twitter", "blogs", "news")) +
+    scale_linetype_manual(values = c("twitter" = 0
+                                   , "blogs" = 0, "news"=0)
+                        , name = "Category"
+                        , guide = guide_legend(override.aes = list(fill = c("red", "blue", "green")
+                                                                       , alpha = .2)))
+```
+
+```{r, echo=F}
+ggplot(data=freqs[[2]], aes(x=freq, linetype="twitter")) + geom_histogram(bins=50, fill = "red", alpha = 0.2) + geom_histogram(data=freqs[[5]], bins=50,fill = "blue", alpha = 0.2, aes(linetype="blogs")) + geom_histogram(data=freqs[[8]], bins=50,fill = "green", alpha = 0.2, aes(linetype="news"))+scale_x_log10()+labs(title="Bigram word count distribution") +
+            scale_fill_manual(values = c("red" = "red"
+                               , "blue" = "blue"
+                               , "green" = "green")
+                    , name = "V/S"
+                    , labels = c("twitter", "blogs", "news")) +
+    scale_linetype_manual(values = c("twitter" = 0
+                                   , "blogs" = 0, "news"=0)
+                        , name = "Category"
+                        , guide = guide_legend(override.aes = list(fill = c("red", "blue", "green")
+                                                                       , alpha = .2)))
+```
+
+```{r, echo=F}
+ggplot(data=freqs[[3]], aes(x=freq, linetype="twitter")) + geom_histogram(bins=50, fill = "red", alpha = 0.2) + geom_histogram(data=freqs[[6]], bins=50,fill = "blue", alpha = 0.2, aes(linetype="blogs")) + geom_histogram(data=freqs[[9]], bins=50,fill = "green", alpha = 0.2, aes(linetype="news"))+scale_x_log10()+labs(title="Trigram word count distribution") +
+            scale_fill_manual(values = c("red" = "red"
+                               , "blue" = "blue"
+                               , "green" = "green")
+                    , name = "V/S"
+                    , labels = c("twitter", "blogs", "news")) +
+    scale_linetype_manual(values = c("twitter" = 0
+                                   , "blogs" = 0, "news"=0)
+                        , name = "Category"
+                        , guide = guide_legend(override.aes = list(fill = c("red", "blue", "green")
+                                                                       , alpha = .2)))
+```
+
+Furthermore we see that the top 5 word/word-pairs for each set are as displayed below. Words as "the, you, that, and" are very common. WHen looking at bigrams the top ones are "in the, of the, for the" in all sets. However, when looking at trigrams we start to see differences in the sets on how people express themselves in writing. In the twitter set we see "thanks for the" while in blogs and news we see a lot ot of "a lot of"... pun intended.
+```{r, results='asis', echo=F}
+library(knitr)
+top5_1<-data.frame(twitter_en=head(freqs[[1]][order(freqs[[1]]$freq, decreasing=T),][1:2]),
+                  blogs_en=head(freqs[[4]][order(freqs[[4]]$freq, decreasing=T),][1:2]),
+                  news_en=head(freqs[[7]][order(freqs[[7]]$freq, decreasing=T),][1:2]),row.names=NULL)
+kable(top5_1)
+```
+
+```{r, results='asis', echo=F}
+top5_2<- data.frame(twitter_en=head(freqs[[2]][order(freqs[[2]]$freq, decreasing=T),][1:2]),
+                  blogs_en=head(freqs[[5]][order(freqs[[5]]$freq, decreasing=T),][1:2]),
+                  news_en=head(freqs[[8]][order(freqs[[8]]$freq, decreasing=T),][1:2]),row.names=NULL)
+kable(top5_2)
+```
+
+```{r, results='asis', echo=F}
+top5_3<- data.frame(twitter_en=head(freqs[[3]][order(freqs[[3]]$freq, decreasing=T),][1:2]),
+                  blogs_en=head(freqs[[6]][order(freqs[[6]]$freq, decreasing=T),][1:2]),
+                  news_en=head(freqs[[9]][order(freqs[[9]]$freq, decreasing=T),][1:2]),row.names=NULL)
+kable(top5_3)
+```
+
+Another way of visualising word frequency is by a word cloud. The word cloud for unigram twitter set is seen below.
+```{r, echo=F}
+wordcloud(words = freqs[[1]]$word, freq = freqs[[1]]$freq, min.freq = 1, max.words=50, random.order=FALSE, rot.per=0.35)
+```
+
+# How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?
+Word counts for all three unigram sets are as displayed in the table below. We see that in order to get 90% coverage compared to 50% we need to increase the number of words with about a factor of 10-20. It's also interesting to see that we only need about 1% of total words to cover the english language by 50%.
+
+```{r, echo=F}
+totWords <- c(sum(freqs[[1]]$freq),sum(freqs[[4]]$freq),sum(freqs[[7]]$freq))
+
+freqs[[1]]<-freqs[[1]][order(freqs[[1]]$freq, decreasing=T),]
+freqs[[4]]<-freqs[[4]][order(freqs[[4]]$freq, decreasing=T),]
+freqs[[7]]<-freqs[[7]][order(freqs[[7]]$freq, decreasing=T),]
+
+lim50=c(0,0,0)
+lim90=c(0,0,0)
+ix=c(1,4,7)
+
+sums=c(0,0,0)
+    
+
+for(i in 1:dim(freqs[[4]])[1]){
+    
+    for(j in 1:3){
+        if(i<totWords[j])
+        {
+        sums[j]=sums[j]+freqs[[ix[j]]]$freq[i]
+        
+        if(sums[j]>(totWords[j]*0.5) & lim50[j]==0){
+            lim50[j]=i
+        }
+        
+        if(sums[j]>totWords[j]*0.9 & lim90[j]==0){
+            lim90[j]=i
+        }
+        }
+    }
+    
+}
+
+```
+
+```{r, echo=F}
+coverage<-data.frame(lim50, fraction_50=lim50/totWords,lim90,fraction_90=lim90/totWords, totWords)
+row.names(coverage)<-files
+kable(coverage)
+```
+
+
+
+# Strategy for the app 
+The application can be built by implementing functions that can take the n-gram models that have been developed for this report. The overall information flow would look like this:  
+* Feed the application with an n-word long sentence (maximum n=3)  
+* Search the (n+1)-gram for any occurence of the 1;n words. Return the last word of the most frequent sentence.  
+* If not found, search the n-gram for any occurence of the 2:n words. Return the last word of the most frequent sentence.  
+* Continue on this search until the unigram, where simply the most frequent word would be returned.  
+
+Of course, some filtering will be needed to increase speed and robustness. This report shows that only a small percentage of the n-gram is needed to cover most sentences, I will therefore only use the top of the n-grams. Also, I will filter out special characters so that we only deal with natural words. (For example hashtags will be removed)
+
+
+
+
+
+
+
+
+
