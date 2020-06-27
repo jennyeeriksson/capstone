@@ -1,0 +1,63 @@
+
+<style>
+.footer {
+    color: red;
+    background: #E8E8E8;
+    position: fixed;
+    top: 90%;
+    text-align:center;
+    width:100%;
+}
+</style>
+
+Predicting the next word in a sentence
+=====================================================
+transition: linear
+author: Jenny Eriksson
+date: 2020-06-27
+autosize: true
+
+
+What
+========================================================
+ The application is an interactive tool for predicting the next word that will come in a sentene.It is a shiny application in which you enter a sentence and get the next most likely words.
+
+ ```{r, echo=FALSE}
+library(imager)
+myimg <- load.image("app.PNG")
+plot(myimg, axes=F)
+```
+
+Why
+====================================================
+incremental: true
+We've all been there. Power walking while texting a friend with one hand and holding a cup of coffe in the other while trying not to die from traffic.Even if it is unadvised, we do it. In these cases it's challenging to get the spelling correct and you defnitiely don't want to spend too much time on what you're writing. 
+
+The word suggestion app will process your sentency while typing and suggest the next word to come. Save lot's of time and credibiltiy on accurately spelt words.
+
+The application
+========================================================
+Go to the [official app](https://jennyeeriksson.shinyapps.io/predictWord/) for a full view.
+
+The user input the sentence and the application will return the most likely word to follow. It will also give up to 10 suggestions on possible other words and display their likelihood. 
+
+The app is based on an n-gram model that has been filled with the swiftkey data set. This data set consists of raw data pulled from twitter posts, news articles and blog posts, in english. They have all been processed in chunks of 1,2,3,4 (unigram, bigram, trigram, quadgram) and put in a dictionary. Words following each other with at least one occurance have been saved, including its frequency in all processed word counts. The app is reading this dictionary and returning the most common occurences when the user inputs a sentence. 
+
+
+Performance and technical details
+========================================================
+
+- Accuracy: 18 % 
+
+The accuracy of the model is based on the first hand suggestion. It can be increased by looking at all suggestions.
+
+- Size of model (Unigram, Bigram, Trigram and Quadgram)  
+    Ncells   529.3  
+    Vcells   479.2  
+
+- Developed on:  
+R version 3.6.3 (2020-02-29)  
+Platform: x86_64-w64-mingw32/x64 (64-bit)  
+Running under: Windows 10 x64 (build 17134)  
+
+
