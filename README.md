@@ -1,1 +1,1 @@
-This is the report for the capstone project in the data science specialization at coursera. Please see http://jennyeeriksson.shinyapps.io/predictWord for the application.
+This is the report for the capstone project in the data science specialization at coursera. The assignment was to create a word predictor from the swiftkey dataset. Please see http://jennyeeriksson.shinyapps.io/predictWord for the application.
